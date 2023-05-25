@@ -1,0 +1,129 @@
+versions:
+  androidx:
+    activity: "1.7.2"
+    compose:
+      bom: "2023.05.01"
+      compiler: "1.4.7"
+    core: "1.10.1"
+    lifecycle: "2.6.1"
+  elucidator: "0.7.0"
+  kotlin: "1.8.21"
+  kotlinpoet: "1.13.2"
+  kotlinx:
+    coroutines: "1.7.1"
+  ksp: "1.8.21-1.0.11"
+  material: "1.9.0"
+  plugins:
+    age: "1.0.0-SNAPSHOT"
+    android: "8.0.2"
+    spotless: "6.19.0"
+
+repositories:
+  mavenLocal:
+  google:
+  mavenCentral:
+  sonatypeSnapshots:
+    url: "https://s01.oss.sonatype.org/content/repositories/snapshots"
+  gradlePluginPortal:
+  noUpdates:
+
+plugins:
+  google:
+    com.google.devtools.ksp: ${versions.ksp}
+  gradlePluginPortal:
+    com.diffplug.spotless: ${versions.plugins.spotless}
+  noUpdates:
+    com.android.application: ${versions.plugins.android}
+    com.android.library: ${versions.plugins.android}
+    org.jetbrains.kotlin.android: ${versions.kotlin}
+    org.jetbrains.kotlin.jvm: ${versions.kotlin}
+  sonatypeSnapshots:
+    me.omico.age.project: ${versions.plugins.age}
+    me.omico.age.spotless: ${versions.plugins.age}
+
+dependencies:
+  google:
+    androidx.activity:
+      activity-compose:
+        alias: androidx.activity.compose
+        version: ${versions.androidx.activity}
+    androidx.compose:
+      compose-bom:
+        alias: androidx.compose.bom
+        version: ${versions.androidx.compose.bom}
+        bom: true
+    androidx.compose.foundation:
+      foundation:
+        alias: androidx.compose.foundation
+        noSpecificVersion: true
+    androidx.compose.material3:
+      material3:
+        alias: androidx.compose.material3
+        noSpecificVersion: true
+    androidx.compose.ui:
+      ui:
+        alias: androidx.compose.ui
+        noSpecificVersion: true
+      ui-graphics:
+        alias: androidx.compose.ui.graphics
+        noSpecificVersion: true
+      ui-test-manifest:
+        alias: androidx.compose.ui.test.manifest
+        noSpecificVersion: true
+      ui-tooling:
+        alias: androidx.compose.ui.tooling
+        noSpecificVersion: true
+      ui-tooling-preview:
+        alias: androidx.compose.ui.tooling.preview
+        noSpecificVersion: true
+    androidx.core:
+      core-ktx:
+        alias: androidx.core.ktx
+        version: ${versions.androidx.core}
+    androidx.lifecycle:
+      lifecycle-viewmodel-compose:
+        alias: androidx.lifecycle.viewmodel.compose
+        version: ${versions.androidx.lifecycle}
+      lifecycle-viewmodel-ktx:
+        alias: androidx.lifecycle.viewmodel.ktx
+        version: ${versions.androidx.lifecycle}
+    com.android.tools.build:
+      gradle:
+        alias: androidGradlePlugin
+        version: ${versions.plugins.android}
+    com.google.android.material:
+      material:
+        alias: material
+        version: ${versions.material}
+    com.google.devtools.ksp:
+      symbol-processing-api:
+        alias: ksp.symbol.processing.api
+        version: ${versions.ksp}
+  mavenCentral:
+    com.squareup:
+      kotlinpoet:
+        alias: kotlinpoet
+        version: ${versions.kotlinpoet}
+      kotlinpoet-ksp:
+        alias: kotlinpoet.ksp
+        version: ${versions.kotlinpoet}
+    me.omico.elucidator:
+      elucidator:
+        alias: elucidator
+        version: ${versions.elucidator}
+    org.jetbrains.kotlin:
+      kotlin-gradle-plugin:
+        alias: kotlinGradlePlugin
+        version: ${versions.kotlin}
+    org.jetbrains.kotlinx:
+      kotlinx-coroutines-core:
+        alias: kotlinx.coroutines.core
+        version: ${versions.kotlinx.coroutines}
+  noUpdates:
+    me.omico.rtvm:
+      rtvm-compiler:
+        alias: rtvm.compiler
+        noSpecificVersion: true
+      rtvm-runtime:
+        alias: rtvm.runtime
+        noSpecificVersion: true

@@ -20,7 +20,7 @@ MVVM 是一种非常优秀的架构，但是它也有一些缺点：
 以下是一个非常简单的 MVVM 案例：
 
 ```kotlin
-data class UserState(
+data class UserViewState(
     val avatar: String? = null,
     val name: String = "",
 ) {
@@ -33,8 +33,8 @@ class UserViewModel : ViewModel() {
     private val avatar: MutableStateFlow<String?> = MutableStateFlow(null)
     private val user: MutableStateFlow<String> = MutableStateFlow("")
 
-    val state: StateFlow<UserState> = combine(avatar, user, ::UserState)
-        .stateIn(viewModelScope, SharingStarted.Lazily, UserState.Initial)
+    val state: StateFlow<UserViewState> = combine(avatar, user, ::UserViewState)
+        .stateIn(viewModelScope, SharingStarted.Lazily, UserViewState.Initial)
 }
 ```
 
@@ -53,13 +53,12 @@ data class UserViewState(
 然后 RTVM 就会自动生成 UserViewModel：
 
 ```kotlin
-class UserViewModel : ViewModel() {
+class UserViewModel : ViewModel(), Stateful<UserViewState> {
     internal val avatar: MutableStateFlow<String?> = MutableStateFlow(null)
     internal val user: MutableStateFlow<String> = MutableStateFlow("")
 
-    val state: StateFlow<UserState> = combine(avatar, user, ::UserState)
-        .stateIn(viewModelScope, SharingStarted.Lazily, UserState.Initial)
-
+    override val state: StateFlow<UserViewState> = combine(avatar, user, ::UserViewState)
+        .stateIn(viewModelScope, SharingStarted.Lazily, UserViewState.Initial)
 }
 ```
 
@@ -75,7 +74,7 @@ fun UserViewModel.updateAvatar(avatar: String?) {
 }
 
 fun UserViewModel.updateName(name: String) {
-    this.name.value = user
+    this.name.value = name
 }
 ```
 

@@ -84,9 +84,6 @@ dependencies:
       lifecycle-viewmodel-compose:
         alias: androidx.lifecycle.viewmodel.compose
         version: ${versions.androidx.lifecycle}
-      lifecycle-viewmodel-ktx:
-        alias: androidx.lifecycle.viewmodel.ktx
-        version: ${versions.androidx.lifecycle}
     com.android.tools.build:
       gradle:
         alias: androidGradlePlugin

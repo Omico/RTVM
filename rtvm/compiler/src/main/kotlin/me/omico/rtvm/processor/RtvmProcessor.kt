@@ -23,10 +23,10 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import me.omico.rtvm.RtvmInitialFunction
+import com.squareup.kotlinpoet.ksp.writeTo
 import me.omico.rtvm.RtvmState
-import me.omico.rtvm.codegen.generateStatefulViewModel
+import me.omico.rtvm.codegen.createRtvmGenerationInfo
+import me.omico.rtvm.codegen.generateViewStateDispatcher
 
 class RtvmProcessor(
     private val codeGenerator: CodeGenerator,
@@ -41,16 +41,11 @@ class RtvmProcessor(
     }
 
     private fun Resolver.generate(): Unit =
-        getAllFiles().forEach { ksFile ->
-            val initialFunctionDeclarations = ksFile.collectInitialFunctionFunctionDeclarations()
-            ksFile.collectViewStateClassDeclarations().forEach { ksClassDeclaration ->
-                generateStatefulViewModel(
-                    initialFunctionAnnotations = initialFunctionDeclarations,
-                    classDeclaration = ksClassDeclaration,
-                    codeGenerator = codeGenerator,
-                )
-            }
-        }
+        getAllFiles()
+            .flatMap(KSFile::collectViewStateClassDeclarations)
+            .map(::createRtvmGenerationInfo)
+            .map(::generateViewStateDispatcher)
+            .forEach { file -> file.writeTo(codeGenerator, aggregating = true) }
 }
 
 @OptIn(KspExperimental::class)
@@ -58,11 +53,4 @@ private fun KSFile.collectViewStateClassDeclarations(): List<KSClassDeclaration>
     declarations
         .flatMap { ksDeclaration -> ksDeclaration.annotations.filter { ksDeclaration.isAnnotationPresent(RtvmState::class) } }
         .mapNotNull { ksAnnotation -> ksAnnotation.parent as? KSClassDeclaration }
-        .toList()
-
-@OptIn(KspExperimental::class)
-private fun KSFile.collectInitialFunctionFunctionDeclarations(): List<KSFunctionDeclaration> =
-    declarations
-        .flatMap { ksDeclaration -> ksDeclaration.annotations.filter { ksDeclaration.isAnnotationPresent(RtvmInitialFunction::class) } }
-        .mapNotNull { ksAnnotation -> ksAnnotation.parent as? KSFunctionDeclaration }
         .toList()

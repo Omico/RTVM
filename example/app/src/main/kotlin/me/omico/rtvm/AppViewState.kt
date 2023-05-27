@@ -15,6 +15,13 @@
  */
 package me.omico.rtvm
 
-@Target(AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.SOURCE)
-annotation class RtvmInitialFunction
+@RtvmState(scope = "app")
+data class AppViewState(
+    val countDown: Int = 0,
+    val pin: String? = null,
+    val timer: Int = 0,
+) {
+    companion object {
+        val Initial = AppViewState()
+    }
+}

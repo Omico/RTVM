@@ -13,30 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.omico.rtvm.codegen
+package me.omico.rtvm.utility
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.MemberName
 
 object KotlinxCoroutines {
     object ClassNames {
-        val StateFlow = ClassName("kotlinx.coroutines.flow", "StateFlow")
+        val Flow = ClassName("kotlinx.coroutines.flow", "Flow")
         val MutableStateFlow = ClassName("kotlinx.coroutines.flow", "MutableStateFlow")
-        val SharingStarted = ClassName("kotlinx.coroutines.flow", "SharingStarted")
     }
 
     object MemberNames {
         val combineMemberName = MemberName("kotlinx.coroutines.flow", "combine")
-        val stateInMemberName = MemberName("kotlinx.coroutines.flow", "stateIn")
-    }
-}
-
-object Jetpack {
-    object ClassNames {
-        val ViewModel = ClassName("androidx.lifecycle", "ViewModel")
-    }
-
-    object MemberNames {
-        val viewModelScopeMemberName = MemberName("androidx.lifecycle", "viewModelScope")
     }
 }

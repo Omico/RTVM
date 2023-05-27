@@ -15,60 +15,62 @@
  */
 package me.omico.rtvm
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-@RtvmState(scope = "app")
-data class AppViewState(
-    val countDown: Int = 0,
-    val pin: String? = null,
-    val timer: Int = 0,
-)
+class AppViewModel : ViewModel(), Stateful<AppViewState> {
+    private val stateDispatcher = AppViewStateDispatcher()
 
-fun AppViewModel.addOneSecond(): Unit = updateTimer { it + 1 }
+    override val state: StateFlow<AppViewState> =
+        stateDispatcher.flow.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = AppViewState.Initial,
+        )
 
-fun AppViewModel.minusOneSecond(): Unit = updateTimer { it - 1 }
+    init {
+        regenerate()
+    }
 
-fun AppViewModel.reset(): Unit = updateTimer { 0 }
+    fun addOneSecond(): Unit = updateTimer { it + 1 }
 
-private var pinCodeGenerationJob: Job? = null
-fun AppViewModel.regenerate() {
-    ensurePinCodeGenerationJobIsCancelled()
-    pinCodeGenerationJob = viewModelScope.launch(Dispatchers.Default) {
-        while (isActive) {
-            (30 downTo 0).forEach {
-                delay(1000)
-                countDown.value = it
-                if (it == 30) pin.value = Random.nextInt(100000..999999).toString()
+    fun minusOneSecond(): Unit = updateTimer { it - 1 }
+
+    fun reset(): Unit = updateTimer { 0 }
+
+    private var pinCodeGenerationJob: Job? = null
+    fun regenerate(): Unit = stateDispatcher {
+        ensurePinCodeGenerationJobIsCancelled()
+        pinCodeGenerationJob = viewModelScope.launch {
+            while (isActive) {
+                (30 downTo 0).forEach {
+                    delay(1000)
+                    countDown.value = it
+                    if (it == 30) pin.value = Random.nextInt(100000..999999).toString()
+                }
             }
         }
     }
-}
 
-@RtvmInitialFunction
-internal fun AppViewModel.initialize() {
-    regenerate()
-}
+    private fun updateTimer(updater: (Int) -> Int): Unit = stateDispatcher {
+        timer.value = updater(timer.value)
+    }
 
-@RtvmInitialFunction
-internal fun AppViewModel.initialize2() {
-}
-
-private fun AppViewModel.updateTimer(updater: (Int) -> Int) {
-    timer.value = updater(timer.value)
-}
-
-private fun AppViewModel.ensurePinCodeGenerationJobIsCancelled() {
-    pinCodeGenerationJob?.let { job ->
-        job.cancel()
-        countDown.value = 0
-        pin.value = null
-        pinCodeGenerationJob = null
+    private fun ensurePinCodeGenerationJobIsCancelled(): Unit = stateDispatcher {
+        pinCodeGenerationJob?.let { job ->
+            job.cancel()
+            countDown.value = 0
+            pin.value = null
+            pinCodeGenerationJob = null
+        }
     }
 }

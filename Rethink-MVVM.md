@@ -25,7 +25,7 @@ data class UserViewState(
     val name: String = "",
 ) {
     companion object {
-        val Initial = UserState()
+        val Initial = UserViewState()
     }
 }
 
@@ -40,47 +40,63 @@ class UserViewModel : ViewModel() {
 
 在上述代码中，我们可以清晰的发现，这些代码都是样板代码，且我们还不得不写。于是这就体现出代码生成的必要性，但奇怪的是我并没有听到周围有人提出过这个问题。于是我就想，为什么不自己写一个呢？为此 RTVM 就诞生了。
 
-RTVM 的实现思路非常简单，就是通过 KSP 生成样板代码。在 RTVM 中，我们只需要编写以下代码：
+RTVM 的实现思路非常简单，就是通过 KSP 生成样板代码。在 RTVM 中，我们只需要为 `UserViewState` 加入 `@RtvmState` 注解，完整示例如下：
 
 ```kotlin
 @RtvmState(scope = "user")
 data class UserViewState(
     val avatar: String? = null,
     val name: String = "",
-)
+) {
+    companion object {
+        val Initial = UserViewState()
+    }
+}
 ```
 
-然后 RTVM 就会自动生成 UserViewModel：
+然后 RTVM 就会自动生成 `UserViewStateDispatcher`，生成的内容如下：
+
+```kotlin
+class UserViewStateDispatcher {
+    private val avatar: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    private val user: MutableStateFlow<String> = MutableStateFlow("")
+
+    val flow: Flow<UserViewState> = combine(avatar, user, ::UserViewState)
+
+    private val parameters: Parameters = Parameters(avatar, user)
+
+    operator fun invoke(block: Parameters.() -> Unit): Unit = block(parameters)
+
+    class Parameters(
+        val countDown: MutableStateFlow<Int>,
+        val pin: MutableStateFlow<String?>,
+        val timer: MutableStateFlow<Int>,
+    )
+}
+```
+
+在下面的案例中，我们将会借助于 Kotlin 的[扩展函数](https://kotlinlang.org/docs/extensions.html#extension-functions)和[运算符重载](https://kotlinlang.org/docs/operator-overloading.html)，通过使用 `stateDispatcher(block: Parameters.() -> Unit)` 来为 RTVM 生成的 `UserViewStateDispatcher` 更新其状态。
 
 ```kotlin
 class UserViewModel : ViewModel(), Stateful<UserViewState> {
-    internal val avatar: MutableStateFlow<String?> = MutableStateFlow(null)
-    internal val user: MutableStateFlow<String> = MutableStateFlow("")
+    private val stateDispatcher = UserViewStateDispatcher()
 
-    override val state: StateFlow<UserViewState> = combine(avatar, user, ::UserViewState)
-        .stateIn(viewModelScope, SharingStarted.Lazily, UserViewState.Initial)
-}
-```
+    override val state: StateFlow<UserViewState> =
+        stateDispatcher.flow.stateIn(viewModelScope, SharingStarted.Lazily, UserViewState.Initial)
 
-可以注意到与手写的 UserViewModel 不同的是，通过 RTVM 生成的 UserViewModel 中的 `avatar` 和 `user` 属性的修饰符都为 `internal`，这就是 RTVM 与 MVVM 最大的区别之一。
+    fun updateAvatar(avatar: String?) {
+        dispatcher {
+            this.avatar.value = avatar
+        }
+    }
 
-我们将会借助于 [Kotlin 扩展函数](https://kotlinlang.org/docs/extensions.html#extension-functions) 来为 RTVM 生成的 ViewModel 更新其状态。
-
-在 RTVM 中，我们可以通过以下方式来更新状态值。
-
-```kotlin
-fun UserViewModel.updateAvatar(avatar: String?) {
-    this.avatar.value = avatar
-}
-
-fun UserViewModel.updateName(name: String) {
-    this.name.value = name
+    fun updateName(name: String) {
+        dispatcher {
+            this.name.value = name
+        }
+    }
 }
 ```
 
 以上只是简单的状态更新案例，更多的请等待后续文档的更新，或参见[示例](example)。
-
-### TODO
-
-- [ ] Usage of `@RtvmInitialFunction` annotation
-- [ ] Usage of shared/pluggable state

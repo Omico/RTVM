@@ -19,44 +19,46 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.symbol.FileLocation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFile
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.ksp.toClassName
 import me.omico.elucidator.TypedParameter
 import me.omico.elucidator.defaultValue
 import me.omico.elucidator.with
 import me.omico.rtvm.RtvmState
-import me.omico.rtvm.Stateful
+import me.omico.rtvm.utility.KotlinxCoroutines
 import me.omico.rtvm.utility.capitalize
 import me.omico.rtvm.utility.extractDefaultValue
 
 data class RtvmGenerationInfo(
+    val ksFile: KSFile,
     val packageName: String,
     val viewStateClassName: ClassName,
-    val generatedViewModelName: String,
-    val generatedViewModelParameters: List<TypedParameter>,
+    val scopeName: String,
+    val generatedViewStateDispatcherProperties: List<TypedParameter>,
 ) {
-    val viewStateName = viewStateClassName.simpleName
-    val generatedViewModelStatefulInterfaceClassName = Stateful::class.asClassName().parameterizedBy(viewStateClassName)
-    val generatedViewModelFileName: String = "$generatedViewModelName.generated"
-    val generatedViewModelStateClassName = KotlinxCoroutines.ClassNames.StateFlow.parameterizedBy(viewStateClassName)
+    val generatedViewStateDispatcherName: String = "${viewStateClassName.simpleName}Dispatcher"
+    val generatedViewStateDispatcherFileName: String = "$generatedViewStateDispatcherName.generated"
+    val generatedViewStateDispatcherFlowClassName = KotlinxCoroutines.ClassNames.Flow.parameterizedBy(viewStateClassName)
+    val generatedViewStateDispatcherParametersClassName = ClassName(packageName, "$generatedViewStateDispatcherName.Parameters")
 }
 
 @OptIn(KspExperimental::class)
 fun createRtvmGenerationInfo(viewStateClassDeclaration: KSClassDeclaration): RtvmGenerationInfo =
     RtvmGenerationInfo(
+        ksFile = viewStateClassDeclaration.containingFile!!,
         packageName = viewStateClassDeclaration.packageName.asString(),
         viewStateClassName = viewStateClassDeclaration.toClassName(),
-        generatedViewModelName = viewStateClassDeclaration.getAnnotationsByType(RtvmState::class).first().scope.capitalize() + "ViewModel",
-        generatedViewModelParameters = collectRtvmViewModelParameters(viewStateClassDeclaration),
+        scopeName = viewStateClassDeclaration.getAnnotationsByType(RtvmState::class).first().scope.capitalize(),
+        generatedViewStateDispatcherProperties = collectViewStateDispatcherProperties(viewStateClassDeclaration),
     )
 
-private fun collectRtvmViewModelParameters(classDeclaration: KSClassDeclaration): List<TypedParameter> =
-    requireNotNull(classDeclaration.primaryConstructor?.parameters) {
+private fun collectViewStateDispatcherProperties(viewStateClassDeclaration: KSClassDeclaration): List<TypedParameter> =
+    requireNotNull(viewStateClassDeclaration.primaryConstructor?.parameters) {
         "\n" +
             "\tThe class with @StatefulViewModel annotation must have a primary constructor.\n" +
-            "\tBut [${classDeclaration.toClassName()}] does not have one.\n"
+            "\tBut [${viewStateClassDeclaration.toClassName()}] does not have one.\n"
     }.map { parameter ->
         require(parameter.isVal) { "\n" + "\tThe parameters in the class annotated with @StatefulViewModel must all be val.\n" }
         require(parameter.hasDefault) { "\n" + "\tThe class with @StatefulViewModel annotation must have a default value for it's parameter.\n" }

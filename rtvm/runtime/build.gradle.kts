@@ -12,6 +12,5 @@ dependencies {
 }
 
 dependencies {
-    compileOnly(androidx.lifecycle.viewmodel.ktx)
     compileOnly(kotlinx.coroutines.core)
 }

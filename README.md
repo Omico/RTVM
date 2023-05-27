@@ -1,6 +1,6 @@
 # RTVM (Rethink MVVM)
 
-RTVM is an improved Android architecture based on the Android MVVM architecture. For more info please see this document [Rethink MVVM (Draft, Chinese only for now) ](Rethink-MVVM.md). This document is distributed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0)。
+RTVM is an improved Android architecture based on the Android MVVM architecture. For more info please see this document [Rethink MVVM (Draft, Chinese only for now) ](Rethink-MVVM.md). This document is distributed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0).
 
 ## Status
 

@@ -31,7 +31,7 @@ import me.omico.rtvm.AppViewState
 
 @Composable
 fun CountDownTimer(viewState: AppViewState) {
-    val progress by remember(viewState.countDown) { derivedStateOf { viewState.countDown.toFloat() / 30 } }
+    val progress by remember { derivedStateOf { viewState.countDown.toFloat() / 30 } }
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,

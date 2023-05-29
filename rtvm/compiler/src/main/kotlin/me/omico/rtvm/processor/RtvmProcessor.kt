@@ -15,14 +15,11 @@
  */
 package me.omico.rtvm.processor
 
-import com.google.devtools.ksp.KspExperimental
-import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFile
 import com.squareup.kotlinpoet.ksp.writeTo
 import me.omico.rtvm.RtvmState
 import me.omico.rtvm.codegen.createRtvmGenerationInfo
@@ -41,16 +38,9 @@ class RtvmProcessor(
     }
 
     private fun Resolver.generate(): Unit =
-        getAllFiles()
-            .flatMap(KSFile::collectViewStateClassDeclarations)
+        getSymbolsWithAnnotation(RtvmState::class.java.name)
+            .map { ksAnnotated -> ksAnnotated as KSClassDeclaration }
             .map(::createRtvmGenerationInfo)
             .map(::generateViewStateDispatcher)
             .forEach { file -> file.writeTo(codeGenerator, aggregating = true) }
 }
-
-@OptIn(KspExperimental::class)
-private fun KSFile.collectViewStateClassDeclarations(): List<KSClassDeclaration> =
-    declarations
-        .flatMap { ksDeclaration -> ksDeclaration.annotations.filter { ksDeclaration.isAnnotationPresent(RtvmState::class) } }
-        .mapNotNull { ksAnnotation -> ksAnnotation.parent as? KSClassDeclaration }
-        .toList()

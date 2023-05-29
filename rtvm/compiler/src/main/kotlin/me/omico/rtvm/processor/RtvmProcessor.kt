@@ -16,6 +16,7 @@
 package me.omico.rtvm.processor
 
 import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
@@ -27,20 +28,24 @@ import me.omico.rtvm.codegen.generateViewStateDispatcher
 
 class RtvmProcessor(
     private val codeGenerator: CodeGenerator,
+    private val logger: KSPLogger,
 ) : SymbolProcessor {
-    private var resolved = false
-
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (resolved) return emptyList()
-        resolver.generate()
-        resolved = true
+        logger.warn("RtvmProcessor starting.")
+        resolver.generateViewStateDispatchers()
         return emptyList()
     }
 
-    private fun Resolver.generate(): Unit =
+    private fun Resolver.generateViewStateDispatchers(): Unit =
         getSymbolsWithAnnotation(RtvmState::class.java.name)
             .map { ksAnnotated -> ksAnnotated as KSClassDeclaration }
             .map(::createRtvmGenerationInfo)
-            .map(::generateViewStateDispatcher)
-            .forEach { file -> file.writeTo(codeGenerator, aggregating = true) }
+            .forEach { generationInfo ->
+                generateViewStateDispatcher(generationInfo)
+                    .writeTo(
+                        codeGenerator = codeGenerator,
+                        aggregating = false,
+                        originatingKSFiles = listOf(generationInfo.ksFile),
+                    )
+            }
 }

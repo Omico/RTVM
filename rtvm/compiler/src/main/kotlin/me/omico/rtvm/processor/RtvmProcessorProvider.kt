@@ -23,5 +23,6 @@ class RtvmProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
         RtvmProcessor(
             codeGenerator = environment.codeGenerator,
+            logger = environment.logger,
         )
 }
